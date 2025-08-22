@@ -1,0 +1,18 @@
+fragment PostParts on Post {
+  __typename
+  title
+  date
+  coverImage
+  excerpt
+  tags
+  body
+}
+
+fragment SettingsParts on Settings {
+  __typename
+  postsLayout {
+    __typename
+    columns
+    rows
+  }
+}

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="3000" height="160" viewBox="0 0 3000 160" preserveAspectRatio="xMinYMid meet" role="img" aria-label="Quant Trader Tools wordmark">
+  <defs>
+    <style type="text/css"><![CDATA[
+      @font-face {
+        font-family: 'Audiowide';
+        font-style: normal;
+        font-weight: 400;
+        src: url('https://fonts.gstatic.com/s/audiowide/v17/l7gdbjpo0cum0ckerWCtkQ.woff2') format('woff2');
+      }
+      .wordmark {
+        font-family: 'Audiowide', 'Orbitron', system-ui, Arial, sans-serif;
+  font-size: 100px;
+  letter-spacing: 0.14em;
+        fill: #0e2139;
+      }
+    ]]></style>
+  </defs>
+  <rect width="100%" height="100%" fill="transparent"/>
+  <text x="4" y="118" class="wordmark">QUANT TRADER TOOLS</text>
+</svg>
