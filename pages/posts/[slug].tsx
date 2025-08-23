@@ -3,7 +3,7 @@ import { client } from '../../tina/__generated__/client'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect, useState, useMemo } from 'react'
-import { normalizeCover } from '../../lib/images'
+import { normalizeCover, withBasePath } from '../../lib/images'
 
 const formatDate = (iso?: string | null) => {
   if (!iso) return ''
@@ -206,15 +206,17 @@ export default function PostPage(props: any) {
       router.push('/posts')
     }
   }
+  const cover = normalizeCover(post.coverImage)
+  const coverSrc = withBasePath(cover, { basePath: (router as any).basePath })
   return (
     <>
       <ReadingProgress />
       <div className="post-frame pattern-dots">
         <div className="post-shell">
           <button type="button" className="back-btn" onClick={goBack} aria-label="Go back">← Back</button>
-          <article className="post-card-view" data-has-img={!!normalizeCover(post.coverImage)}>
-          {normalizeCover(post.coverImage) && (
-            <div className="pc-media"><img src={normalizeCover(post.coverImage)} alt={post.title} loading="eager" /></div>
+          <article className="post-card-view" data-has-img={!!cover}>
+          {cover && (
+            <div className="pc-media"><img src={coverSrc} alt={post.title} loading="eager" /></div>
           )}
           <h1 className="pc-title">{post.title}</h1>
           <div className="pc-meta">
