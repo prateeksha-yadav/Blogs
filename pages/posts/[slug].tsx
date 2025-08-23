@@ -1,7 +1,19 @@
 import { useTina } from 'tinacms/dist/react'
 import { client } from '../../tina/__generated__/client'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { useEffect, useState, useMemo } from 'react'
+
+// Normalize image paths from content
+const normalizeCover = (src?: string | null) => {
+  if (!src) return ''
+  let s = String(src).trim()
+  if (!s) return ''
+  if (/^https?:\/\//i.test(s)) return s
+  if (!s.startsWith('/')) s = '/' + s
+  s = s.replace(/\/{2,}/g, '/')
+  return s
+}
 
 const formatDate = (iso?: string | null) => {
   if (!iso) return ''
@@ -178,6 +190,7 @@ const ReadingProgress = () => {
 }
 
 export default function PostPage(props: any) {
+  const router = useRouter()
   const { data } = useTina({
     query: props.query,
     variables: props.variables,
@@ -195,13 +208,23 @@ export default function PostPage(props: any) {
       navigator.clipboard.writeText(window.location.href)
     } catch {}
   }
+  const goBack = () => {
+    try {
+      if (window.history.length > 1) router.back()
+      else router.push('/posts')
+    } catch {
+      router.push('/posts')
+    }
+  }
   return (
     <>
       <ReadingProgress />
       <div className="post-frame pattern-dots">
-        <article className="post-card-view" data-has-img={!!post.coverImage}>
-          {post.coverImage && (
-            <div className="pc-media"><img src={post.coverImage} alt={post.title} loading="eager" /></div>
+        <div className="post-shell">
+          <button type="button" className="back-btn" onClick={goBack} aria-label="Go back">← Back</button>
+          <article className="post-card-view" data-has-img={!!normalizeCover(post.coverImage)}>
+          {normalizeCover(post.coverImage) && (
+            <div className="pc-media"><img src={normalizeCover(post.coverImage)} alt={post.title} loading="eager" /></div>
           )}
           <h1 className="pc-title">{post.title}</h1>
           <div className="pc-meta">
@@ -218,7 +241,8 @@ export default function PostPage(props: any) {
             </div>
           )}
           <div className="pc-body rich-body"><RichText data={post.body} /></div>
-        </article>
+          </article>
+        </div>
       </div>
     </>
   )
