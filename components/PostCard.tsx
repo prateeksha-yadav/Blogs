@@ -1,17 +1,5 @@
 import Link from 'next/link'
-
-// Normalize image paths coming from content (trim spaces, ensure leading slash)
-const normalizeCover = (src?: string | null) => {
-  if (!src) return ''
-  let s = String(src).trim()
-  if (!s) return ''
-  // Allow full URLs as-is
-  if (/^https?:\/\//i.test(s)) return s
-  if (!s.startsWith('/')) s = '/' + s
-  // Collapse duplicate slashes (except protocol part which we don't have here)
-  s = s.replace(/\/{2,}/g, '/')
-  return s
-}
+import { normalizeCover } from '../lib/images'
 
 export interface PostMeta {
   slug: string

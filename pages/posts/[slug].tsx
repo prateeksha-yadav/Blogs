@@ -3,17 +3,7 @@ import { client } from '../../tina/__generated__/client'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect, useState, useMemo } from 'react'
-
-// Normalize image paths from content
-const normalizeCover = (src?: string | null) => {
-  if (!src) return ''
-  let s = String(src).trim()
-  if (!s) return ''
-  if (/^https?:\/\//i.test(s)) return s
-  if (!s.startsWith('/')) s = '/' + s
-  s = s.replace(/\/{2,}/g, '/')
-  return s
-}
+import { normalizeCover } from '../../lib/images'
 
 const formatDate = (iso?: string | null) => {
   if (!iso) return ''
