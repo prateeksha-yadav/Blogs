@@ -1,6 +1,5 @@
 import Link from 'next/link'
-import { normalizeCover, withBasePath } from '../lib/images'
-import { useRouter } from 'next/router'
+import { normalizeCover } from '../lib/images'
 
 export interface PostMeta {
   slug: string
@@ -11,12 +10,9 @@ export interface PostMeta {
 }
 
 export const PostCard = ({ post }: { post: PostMeta }) => {
-  const router = useRouter()
   const raw = post.excerpt || ''
   const words = raw.trim().split(/\s+/).filter(Boolean)
   const preview = words.slice(0, 100).join(' ')
-  const cover = normalizeCover(post.coverImage)
-  const src = withBasePath(cover, { basePath: (router as any).basePath })
   return (
     <div className="article-card" data-variant="image-right">
       <div className="ac-text">
@@ -34,8 +30,8 @@ export const PostCard = ({ post }: { post: PostMeta }) => {
         </div>
       </div>
       <div className="ac-thumb">
-        {cover ? (
-          <img src={src} alt={post.title} />
+        {normalizeCover(post.coverImage) ? (
+          <img src={normalizeCover(post.coverImage)} alt={post.title} />
         ) : (
           <span className="ac-fallback">{post.title.charAt(0).toUpperCase()}</span>
         )}

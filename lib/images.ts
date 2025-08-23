@@ -62,22 +62,3 @@ export function normalizePublicImagePath(src?: string | null): string {
 // Convenience alias for future extension if we decide to keep blog images
 // under a subfolder like /blog/*. For now, we normalize to site-root paths.
 export const normalizeCover = normalizePublicImagePath
-
-// Build a browser-facing src that respects Next.js basePath/assetPrefix.
-// - basePath: from next/router "basePath" or process.env.NEXT_PUBLIC_BASE_PATH
-// - assetPrefix: when using CDN; falls back to basePath
-export function withBasePath(path: string, opts?: { basePath?: string; assetPrefix?: string }): string {
-  if (!path) return ""
-  // Allow external URLs
-  if (/^https?:\/\//i.test(path)) return path
-  const p = path.startsWith("/") ? path : "/" + path
-  const bpRaw = (opts?.assetPrefix || opts?.basePath || process.env.NEXT_PUBLIC_ASSET_PREFIX || process.env.NEXT_PUBLIC_BASE_PATH || "")
-  const bp = bpRaw.replace(/\/$/, "")
-  if (!bp) return p
-  // If prefix is an absolute URL, don't collapse protocol slashes
-  if (/^https?:\/\//i.test(bp)) {
-    return bp + p
-  }
-  // Otherwise it's a path prefix; safely collapse duplicate slashes
-  return (bp + p).replace(/\/{2,}/g, "/")
-}
