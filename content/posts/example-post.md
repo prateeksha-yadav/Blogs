@@ -15,6 +15,13 @@ In this article, we'll introduce Private Domains for Temporary Email and how the
 
 This information will be useful to you if:
 
+```markdown
+- Your temporary email is not accepted at registration.
+- You need a personal, nice-looking domain for your email.
+- You need to test email delivery from a website or application (QA).
+
+```
+
 * Your temporary email is not accepted at registration.
 * You need a personal, nice-looking domain for your email.
 * You need to test email delivery from a website or application (QA).
