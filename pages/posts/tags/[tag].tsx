@@ -1,4 +1,5 @@
 import { client } from '../../../tina/__generated__/client'
+import { readAllPosts } from '../../../lib/posts'
 import Link from 'next/link'
 import { PostCard } from '../../../components/PostCard'
 
@@ -21,25 +22,38 @@ export default function TagPage(props: any) {
 }
 
 export const getStaticPaths = async () => {
-  const { data } = await client.queries.postConnection()
-  const edges = data.postConnection?.edges || []
-  const tags = new Set<string>()
-  edges.forEach(e => {
-    const node: any = e?.node
-    if (!node) return
-    ;(node.tags || []).forEach((t: string | null) => {
-      if (t) tags.add(t)
+  try {
+    const { data } = await client.queries.postConnection()
+    const edges = data.postConnection?.edges || []
+    const tags = new Set<string>()
+    edges.forEach(e => {
+      const node: any = e?.node
+      if (!node) return
+      ;(node.tags || []).forEach((t: string | null) => {
+        if (t) tags.add(t)
+      })
     })
-  })
-  return { paths: Array.from(tags).map(t=>({ params:{ tag:t } })), fallback:'blocking' }
+    return { paths: Array.from(tags).map(t=>({ params:{ tag:t } })), fallback:'blocking' }
+  } catch (err) {
+    // Fallback: scan filesystem
+    const posts = readAllPosts()
+    const tags = new Set<string>()
+    posts.forEach((p:any)=> (p.tags||[]).forEach((t:string)=> t && tags.add(t)))
+    return { paths: Array.from(tags).map(t=>({ params:{ tag:t } })), fallback:'blocking' }
+  }
 }
 
 export const getStaticProps = async (ctx:any) => {
-  const { data } = await client.queries.postConnection()
-  const edges = data.postConnection?.edges || []
   const tag = ctx.params.tag
-  const posts = edges
-    .map(e => e?.node)
-    .filter((p:any)=> p && (p.tags||[]).includes(tag))
-  return { props:{ posts, tag }, revalidate:60 }
+  try {
+    const { data } = await client.queries.postConnection()
+    const edges = data.postConnection?.edges || []
+    const posts = edges
+      .map(e => e?.node)
+      .filter((p:any)=> p && (p.tags||[]).includes(tag))
+    return { props:{ posts, tag }, revalidate:60 }
+  } catch (err) {
+    const posts = readAllPosts().filter((p:any)=> (p.tags||[]).includes(tag))
+    return { props:{ posts, tag }, revalidate:60 }
+  }
 }

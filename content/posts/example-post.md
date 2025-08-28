@@ -11,7 +11,7 @@ tags:
   - seo
 ---
 
-In this **article**, ***we'll introduce Private*** Domains for Temporary Email and how they help you to bypass common issues with registration and test email delivery.
+In this **article**, ***we'll introduce Private*** Domains for ***Temporary Email* **and how they help you to bypass common issues with registration and test email delivery.
 
 This information will be useful to you if:
 

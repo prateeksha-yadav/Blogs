@@ -194,6 +194,15 @@ a:hover { color:var(--primary-hover); }
 .prose p { line-height:1.6; margin:0 0 1rem; }
 .prose h1, .prose h2, .prose h3 { font-weight:700; margin:2rem 0 1rem; line-height:1.2; }
 .prose ul, .prose ol { margin:0 0 1rem 1.25rem; padding:0; }
+
+/* Prose typography */
+.prose strong, .prose b { font-weight:700; }
+.prose em, .prose i { font-style: italic; }
+.prose a { color: var(--primary); text-decoration: underline; }
+.prose a:hover { color: var(--primary-hover); }
+.prose blockquote { border-left: 4px solid var(--border); padding: .5rem 1rem; margin: 0 0 1rem; color: var(--text-dim); background: rgba(0,0,0,0.02); }
+.prose code { background: #f3f4f6; padding: .12em .4em; border-radius: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+.prose pre { background: var(--code-bg); color: #f3f4f6; padding: 1rem; border-radius: 10px; overflow:auto; }
 pre { background:var(--code-bg); color:#f3f4f6; padding:1rem; border-radius:10px; overflow:auto; font-size:.85rem; box-shadow:0 4px 20px -4px rgba(15,23,42,.4); }
 
 /* Utility tweaks */
@@ -203,8 +212,7 @@ pre { background:var(--code-bg); color:#f3f4f6; padding:1rem; border-radius:10px
 /* Smooth fade-in */
 body, .card, img { transition:background-color .3s, color .3s; }
 
-/* Global layout */
-.site-header { position:sticky; top:0; z-index:60; backdrop-filter:blur(10px); background:rgba(255,255,255,.65); border-bottom:1px solid var(--border); box-shadow:0 4px 12px -6px rgba(2,132,199,.18); }
+.site-header { position:fixed; top:0; left:0; width:100%; z-index:60; backdrop-filter:blur(10px); background:rgba(255,255,255,.85); border-bottom:1px solid var(--border); box-shadow:0 4px 12px -6px rgba(2,132,199,.18); }
 .head-inner { display:flex; align-items:center; justify-content:space-between; height:3.75rem; }
 .brand { font-size:1.25rem; font-weight:700; letter-spacing:.5px; background:linear-gradient(90deg,#0369a1,#0ea5e9,#6366f1); -webkit-background-clip:text; background-clip:text; color:transparent; }
 .brand-group { display:flex; align-items:center; gap:.6rem; text-decoration:none; }
@@ -264,7 +272,7 @@ body, .card, img { transition:background-color .3s, color .3s; }
 .main-nav a { position:relative; padding:.35rem .15rem; }
 .main-nav a::after { content:""; position:absolute; left:0; right:0; bottom:0; height:2px; background:linear-gradient(90deg,var(--primary),#60a5fa); transform:scaleX(0); transform-origin:left; transition:.35s; border-radius:2px; }
 .main-nav a:hover::after, .main-nav a[aria-current='page']::after { transform:scaleX(1); }
-.site-main { min-height:calc(100vh - 3.75rem - 140px); }
+.site-main { padding-top:3.75rem; min-height:calc(100vh - 3.75rem - 140px); }
 .site-footer { background:linear-gradient(180deg,rgba(255,255,255,.4),rgba(224,240,255,.65)); padding:2.5rem 0 3rem; margin-top:3rem; border-top:1px solid var(--border); }
 :root[data-theme='dark'] .site-footer { background:linear-gradient(180deg,rgba(30,58,138,.25),rgba(15,23,42,.85)); }
 :root[data-theme='dark'] .btn-primary { box-shadow:0 6px 18px -6px rgba(14,165,233,.5); }
@@ -349,6 +357,53 @@ input, button { border-radius:var(--radius-sm) !important; }
 .tag-chip.small { font-size:.55rem; padding:.35rem .55rem; }
 .pc-body { padding:0; }
 .pc-body p { font-size:1.05rem; }
+
+/* Ensure content inside post cards never overflows the card */
+.post-card-view, .pc-body, .rich-body, .prose {
+	box-sizing: border-box;
+	max-width: 100%;
+	overflow-wrap: break-word;
+	word-break: break-word;
+}
+
+/* Images, iframes and media scale to fit card */
+.post-card-view img, .pc-body img, .rich-body img, .prose img {
+	max-width: 100%;
+	height: auto;
+	display: block;
+}
+.post-card-view iframe, .pc-body iframe, .rich-body iframe, .prose iframe {
+	max-width: 100%;
+	width: 100%;
+}
+
+/* Make tables responsive: allow horizontal scroll inside the card if needed and avoid overflow */
+.pc-body table, .prose table {
+	width: 100%;
+	max-width: 100%;
+	display: block;
+	overflow: auto;
+	-webkit-overflow-scrolling: touch;
+	border-collapse: collapse;
+}
+.pc-body th, .pc-body td, .prose th, .prose td {
+	word-break: break-word;
+	white-space: normal;
+}
+
+/* Wrap long inline code or long words */
+.pc-body code, .prose code, pre code {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+/* Keep pre blocks readable but prevent overflow */
+.pc-body pre, .prose pre {
+	max-width: 100%;
+	overflow: auto;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
 
 /* --- Modern code card styles for blog post body --- */
 .pc-body pre {

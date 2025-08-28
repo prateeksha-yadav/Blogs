@@ -4,6 +4,7 @@ import type { GetStaticProps } from 'next'
 import Link from 'next/link'
 import { useTina } from 'tinacms/dist/react'
 import { client } from '../../tina/__generated__/client'
+import { readAllPosts } from '../../lib/posts'
 import { PostCard } from '../../components/PostCard'
 
 export default function PostsIndex(props: any) {
@@ -143,22 +144,38 @@ export default function PostsIndex(props: any) {
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-  const postsRes = await client.queries.postConnection({})
-  // Fetch the single settings document (site.md)
-  let settings: any = null
   try {
-    const settingsRes = await client.queries.settings({ relativePath: 'site.md' })
-    settings = settingsRes.data.settings
-  } catch (e) {
-    // settings file might not exist yet
-  }
-  return {
-    props: {
-      data: postsRes.data,
-      query: postsRes.query,
-      variables: postsRes.variables,
-      settings,
-    },
-    revalidate: 60,
+    const postsRes = await client.queries.postConnection({})
+    // Fetch the single settings document (site.md)
+    let settings: any = null
+    try {
+      const settingsRes = await client.queries.settings({ relativePath: 'site.md' })
+      settings = settingsRes.data.settings
+    } catch (e) {
+      // settings file might not exist yet
+    }
+    return {
+      props: {
+        data: postsRes.data,
+        query: postsRes.query,
+        variables: postsRes.variables,
+        settings,
+      },
+      revalidate: 60,
+    }
+  } catch (err) {
+    // Fallback: read markdown files directly
+    const posts = readAllPosts()
+    // Create a minimal data structure similar to Tina's postConnection
+    const data = { postConnection: { edges: posts.map(p=>({ node: p })) } }
+    return {
+      props: {
+        data,
+        query: null,
+        variables: null,
+        settings: null,
+      },
+      revalidate: 60,
+    }
   }
 }

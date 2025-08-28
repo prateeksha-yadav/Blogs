@@ -6,8 +6,8 @@
     "dev": "tinacms dev --datalayer-port 9200 -c \"next dev\"",
     "dev:raw": "next dev",
     "kill:9000": "npx kill-port 9000 || true",
-    "build": "tinacms build && next build",
-    "start": "tinacms build && next start",
+  "build": "node ./scripts/build.js",
+  "start": "node ./scripts/build.js && next start",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

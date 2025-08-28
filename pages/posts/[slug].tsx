@@ -327,11 +327,12 @@ export default function PostPage(props: any) {
             </div>
           )}
           <div className="pc-body rich-body">
-            <TinaMarkdown 
-              content={post.body}
-              components={{
-                code_block: (props) => {
-                  if (!props) return null;
+            <div className="prose">
+              <TinaMarkdown 
+                content={post.body}
+                components={{
+                code_block: (props: { lang?: string; value?: string } | undefined) => {
+                  if (!props) return <></>;
                   const code = props.value || '';
                   let lang = (props.lang || '').toLowerCase();
                   // Auto-detect language if not provided
@@ -361,7 +362,8 @@ export default function PostPage(props: any) {
                   );
                 }
               }}
-            />
+              />
+            </div>
           </div>
 
 
@@ -373,19 +375,37 @@ export default function PostPage(props: any) {
 }
 
 export const getStaticPaths = async () => {
-  const { data } = await client.queries.postConnection()
-  const edges = data.postConnection?.edges || []
-  return {
-    paths: edges.map((e: any) => ({
-      params: { slug: e.node._sys.filename },
-    })),
-    fallback: 'blocking',
+  try {
+    const { data } = await client.queries.postConnection()
+    const edges = data.postConnection?.edges || []
+    return {
+      paths: edges.map((e: any) => ({ params: { slug: e.node._sys.filename } })),
+      fallback: 'blocking',
+    }
+  } catch (err) {
+    // Fallback to filesystem
+    const { readAllPosts } = await import('../../lib/posts')
+    const posts = readAllPosts()
+    return {
+      paths: posts.map((p:any)=>({ params: { slug: p._sys.filename } })),
+      fallback: 'blocking',
+    }
   }
 }
 
 export const getStaticProps = async (ctx: any) => {
-  const { data, query, variables } = await client.queries.post({
-    relativePath: ctx.params.slug + '.md',
-  })
-  return { props: { data, query, variables }, revalidate: 60 }
+  try {
+    const { data, query, variables } = await client.queries.post({
+      relativePath: ctx.params.slug + '.md',
+    })
+    return { props: { data, query, variables }, revalidate: 60 }
+  } catch (err) {
+    const { readAllPosts } = await import('../../lib/posts')
+    const posts = readAllPosts()
+    const post = posts.find((p:any)=> p._sys.filename === ctx.params.slug)
+    if (!post) return { notFound: true }
+    // Build a minimal Tina-like data object
+    const data = { post }
+    return { props: { data, query: null, variables: null }, revalidate: 60 }
+  }
 }
