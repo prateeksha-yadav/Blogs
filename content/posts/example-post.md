@@ -15,20 +15,22 @@ In this **article**, ***we'll introduce Private*** Domains for Temporary Email a
 
 This information will be useful to you if:
 
+```cpp
+
+#include <iostream>  
+using namespace std;
+
+int main() {
+    cout << "Hello, World!" << endl;
+    return 0;  
+}
+
+```
+
 * Your temporary email is not accepted at registration.
 * You need a personal, nice-looking domain for your email.
 * You need to test email delivery from a website or application (QA).
 
 Why can't I sign up with a temporary email?
 
-If you have registered on sites like Facebook or Instagram, you have probably encountered a situation where your email is not accepted or a confirmation email with a code is not sent to you. This is a result of a hidden security algorithm that blocks your registration as undesirable. checkinngggg!!
-
-```c
-#include <iostream>  
-using namespace std;
-
-int main() {
-    cout << "Hello, Worl!" << endl;  
-    return 0;  
-}
-```
+If you have registered on sites like Facebook or Instagram, you have probably encountered a situation where your email is not accepted or a confirmation email with a code is not sent to you. This is a result of a hidden security algorithm that blocks your registration as undesirable.
