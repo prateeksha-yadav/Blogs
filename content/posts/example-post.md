@@ -7,11 +7,11 @@ excerpt: >-
   they help you to bypass common issues with registration and test email
   delivery.
 tags:
-  - ''
-  - ''
+  - email
+  - seo
 ---
 
-In this article, we'll introduce Private Domains for Temporary Email and how they help you to bypass common issues with registration and test email delivery.
+In this **article**, ***we'll introduce Private*** Domains for Temporary Email and how they help you to bypass common issues with registration and test email delivery.
 
 This information will be useful to you if:
 
@@ -21,4 +21,14 @@ This information will be useful to you if:
 
 Why can't I sign up with a temporary email?
 
-If you have registered on sites like Facebook or Instagram, you have probably encountered a situation where your email is not accepted or a confirmation email with a code is not sent to you. This is a result of a hidden security algorithm that blocks your registration as undesirable.
+If you have registered on sites like Facebook or Instagram, you have probably encountered a situation where your email is not accepted or a confirmation email with a code is not sent to you. This is a result of a hidden security algorithm that blocks your registration as undesirable. checkinngggg!!
+
+```c
+#include <iostream>  
+using namespace std;
+
+int main() {
+    cout << "Hello, Worl!" << endl;  
+    return 0;  
+}
+```

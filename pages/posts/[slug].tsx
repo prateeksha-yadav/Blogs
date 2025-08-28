@@ -1,9 +1,13 @@
+import { useState } from 'react';
+
 import { useTina } from 'tinacms/dist/react'
 import { client } from '../../tina/__generated__/client'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
+
 import { normalizeCover } from '../../lib/images'
+import { TinaMarkdown } from 'tinacms/dist/rich-text'
 
 const formatDate = (iso?: string | null) => {
   if (!iso) return ''
@@ -14,9 +18,42 @@ const formatDate = (iso?: string | null) => {
   return `${day}.${month}.${y}`
 }
 
+// Copy button for code blocks (must be at top level for TinaMarkdown)
+function CopyButton({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+  const doCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch {}
+  };
+  return (
+    <button type="button" className="codebox-copy" onClick={doCopy}>
+      {copied ? 'Copied' : 'Copy'}
+    </button>
+  );
+}
+
 // Minimal rich text renderer for Tina content
 function RichText({ data }: { data: any }) {
   if (!data) return null
+  // Pretty code block with header + copy
+  const CodeBlockBox = ({ code, lang }: { code: string; lang?: string }) => {
+    const [copied, setCopied] = useState(false)
+    const doCopy = async () => {
+      try { await navigator.clipboard.writeText(code); setCopied(true); setTimeout(()=>setCopied(false), 1200) } catch {}
+    }
+    return (
+      <div className="codebox">
+        <div className="codebox-head">
+          <span className="codebox-lang">{(lang || 'text').toLowerCase()}</span>
+          <button type="button" className="codebox-copy" onClick={doCopy}>{copied ? 'Copied' : 'Copy'}</button>
+        </div>
+        <pre><code className={`language-${lang || 'text'}`}>{code}</code></pre>
+      </div>
+    )
+  }
 
   // Helper: get plain text from a node tree
   const nodeText = (node: any): string => {
@@ -76,11 +113,13 @@ function RichText({ data }: { data: any }) {
       }
       // code fence (simple): collect until closing fence
       if (/^```/.test(line)) {
+        const fence = lines[i]
+        const lang = fence.replace(/^```/, '').trim() || undefined
         const code: string[] = []
         i++
         while (i < lines.length && !/^```/.test(lines[i])) { code.push(lines[i]); i++ }
         if (i < lines.length) i++ // skip closing fence
-        out.push(<pre key={`pre-${out.length}`}><code>{code.join('\n')}</code></pre>)
+        out.push(<CodeBlockBox key={`pre-${out.length}`} code={code.join('\n')} lang={lang} />)
         continue
       }
       // paragraphs (collect contiguous non-empty lines)
@@ -105,13 +144,50 @@ function RichText({ data }: { data: any }) {
     return <>{renderMarkdownString(String(md || ''))}</>
   }
 
+  // Helper: render inline children with minimal formatting (supports inline code)
+  const renderInline = (children: any[]): JSX.Element[] => {
+    return (children || []).map((c: any, j: number) => {
+      // Text node with possible marks
+      if (c?.text !== undefined) {
+        const content = c.text
+        if (c.code) return <code key={j}>{content}</code>
+        return <span key={j}>{content}</span>
+      }
+      // Fallback: nested nodes
+      if (c?.children) {
+        return <span key={j}>{renderInline(c.children)}</span>
+      }
+      return <span key={j}>{nodeText(c)}</span>
+    })
+  }
+
   // Normal Tina RichText rendering
   return (children as any[])?.map((block: any, i: number) => {
-    const inline = block.children?.map((c: any, j: number) =>
-      c.text ? <span key={j}>{c.text}</span> : null
-    )
+    const inline = renderInline(block.children || [])
     switch (block.type) {
       case 'p':
+        // If the paragraph actually contains a fenced block, parse it
+        const paraText = nodeText(block)
+        if (/```[\s\S]*```/.test(paraText)) {
+          return <div key={i}>{renderMarkdownString(paraText)}</div>
+        }
+        // If all children are code nodes, treat as a code block
+        const allCode = Array.isArray(block.children) && block.children.length > 0 && block.children.every((c:any)=> c?.code)
+        if (allCode) {
+          // Join with newlines if present, else with spaces
+          const code = block.children.map((c:any)=>c.text).join('\n')
+          return <CodeBlockBox key={i} code={code} />
+        }
+        // If the paragraph contains inline code with newlines, render as block code
+        const hasInlineCode = Array.isArray(block.children) && block.children.some((c:any)=> c?.code)
+        if (hasInlineCode && /\n/.test(paraText)) {
+          return <CodeBlockBox key={i} code={paraText} />
+        }
+        // Heuristic: one-line code snippet (e.g., C/C++ demo) without fences
+        if (/^#include\b/.test(paraText) || /\bint\s+main\s*\(/.test(paraText) || (/;/.test(paraText) && /[{}]/.test(paraText))) {
+          const guessed = (/^#include\b/.test(paraText) || /\bint\s+main\s*\(/.test(paraText)) ? 'cpp' : undefined
+          return <CodeBlockBox key={i} code={paraText} lang={guessed} />
+        }
         return (
           <p key={i} style={{ lineHeight: 1.6, margin: '0 0 1rem' }}>
             {inline}
@@ -129,30 +205,50 @@ function RichText({ data }: { data: any }) {
         if (block.type === 'ul')
           return (
             <ul key={i} style={{ margin: '0 0 1rem 1.25rem' }}>
-              {block.children?.map((li: any, k: number) => (
-                <li key={k}>
-                  {li.children?.map((c: any, j: number) => c.text)}
-                </li>
-              ))}
+              {block.children?.map((li: any, k: number) => {
+                // Each li may contain paragraphs or inline children
+                const liChildren = Array.isArray(li?.children) ? li.children : []
+                return (
+                  <li key={k}>
+                    {liChildren.length > 0
+                      ? liChildren.map((n: any, idx: number) => (
+                          n?.type === 'p' ? (
+                            <span key={idx}>{renderInline(n.children || [])}</span>
+                          ) : (
+                            <span key={idx}>{renderInline([n] as any)}</span>
+                          )
+                        ))
+                      : nodeText(li)}
+                  </li>
+                )
+              })}
             </ul>
           )
         if (block.type === 'ol')
           return (
             <ol key={i} style={{ margin: '0 0 1rem 1.25rem' }}>
-              {block.children?.map((li: any, k: number) => (
-                <li key={k}>
-                  {li.children?.map((c: any, j: number) => c.text)}
-                </li>
-              ))}
+              {block.children?.map((li: any, k: number) => {
+                const liChildren = Array.isArray(li?.children) ? li.children : []
+                return (
+                  <li key={k}>
+                    {liChildren.length > 0
+                      ? liChildren.map((n: any, idx: number) => (
+                          n?.type === 'p' ? (
+                            <span key={idx}>{renderInline(n.children || [])}</span>
+                          ) : (
+                            <span key={idx}>{renderInline([n] as any)}</span>
+                          )
+                        ))
+                      : nodeText(li)}
+                  </li>
+                )
+              })}
             </ol>
           )
         if (block.type === 'code') {
-          const val = block.value || nodeText(block)
-          return (
-            <pre key={i}>
-              <code>{val}</code>
-            </pre>
-          )
+          const val = String(block.value || nodeText(block) || '')
+          const lang = block.lang
+          return <CodeBlockBox key={i} code={val} lang={lang} />
         }
         // Fallback: print any unhandled block as paragraph text
         const txt = nodeText(block)
@@ -223,14 +319,52 @@ export default function PostPage(props: any) {
             <span>{metrics.words} WORDS</span>
             <button type="button" onClick={share} className="share-btn thin">COPY LINK</button>
           </div>
-          {post.tags?.length > 0 && (
+          {post.tags?.filter((t: string) => (t||'').trim().length>0).length > 0 && (
             <div className="pc-tags">
-              {post.tags.map((t: string) => (
+              {post.tags.filter((t:string)=> (t||'').trim().length>0).map((t: string) => (
                 <Link key={t} href={`/posts/tags/${t}`} className="tag-chip small">{t}</Link>
               ))}
             </div>
           )}
-          <div className="pc-body rich-body"><RichText data={post.body} /></div>
+          <div className="pc-body rich-body">
+            <TinaMarkdown 
+              content={post.body}
+              components={{
+                code_block: (props) => {
+                  if (!props) return null;
+                  const code = props.value || '';
+                  let lang = (props.lang || '').toLowerCase();
+                  // Auto-detect language if not provided
+                  if (!lang || lang === 'text' || lang === 'c') {
+                    if (/^\s*#include\s+<iostream>/m.test(code) || /using\s+namespace\s+std/.test(code)) {
+                      lang = 'cpp';
+                    } else if (/^\s*#include\s+<stdio.h>/m.test(code)) {
+                      lang = 'c';
+                    } else if (/^\s*def\s+\w+\s*\(/m.test(code) || /print\s*\(/.test(code)) {
+                      lang = 'python';
+                    } else if (/^\s*public\s+class\s+\w+/.test(code)) {
+                      lang = 'java';
+                    } else if (/^\s*function\s+\w+\s*\(/.test(code) || /console\.log/.test(code)) {
+                      lang = 'javascript';
+                    } else {
+                      lang = 'text';
+                    }
+                  }
+                  return (
+                    <div className="codebox">
+                      <div className="codebox-head">
+                        <span className="codebox-lang">{lang}</span>
+                        <CopyButton code={code} />
+                      </div>
+                      <pre><code className={`language-${lang}`}>{code}</code></pre>
+                    </div>
+                  );
+                }
+              }}
+            />
+          </div>
+
+
           </article>
         </div>
       </div>

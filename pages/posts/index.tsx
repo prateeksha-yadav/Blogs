@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
+import { useRouter } from 'next/router'
 import type { GetStaticProps } from 'next'
 import Link from 'next/link'
 import { useTina } from 'tinacms/dist/react'
@@ -24,6 +25,15 @@ export default function PostsIndex(props: any) {
   const [search, setSearch] = useState('')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
+
+  const router = useRouter()
+
+  // Initialize search from query param (so header search works)
+  useEffect(() => {
+    if (!router.isReady) return
+    const q = typeof router.query.search === 'string' ? router.query.search : ''
+    setSearch(q || '')
+  }, [router.isReady, router.query.search])
 
   // Estimate reading time (200 wpm)
   const withMetrics = useMemo(() => posts.map((p:any)=> {
@@ -117,9 +127,9 @@ export default function PostsIndex(props: any) {
                   coverImage: p.coverImage,
                 }}
               />
-              {p.tags?.length > 0 && (
+        {p.tags?.filter((t:string)=> (t||'').trim().length>0).length > 0 && (
                 <div style={{ position:'absolute', top:8, left:8, display:'flex', gap:6, flexWrap:'wrap' }}>
-                  {p.tags.slice(0,3).map((t:string)=>(
+          {p.tags.filter((t:string)=> (t||'').trim().length>0).slice(0,3).map((t:string)=>(
                     <Link key={t} href={`/posts/tags/${t}`} style={{ background:'rgba(255,255,255,.8)', padding:'2px 6px', borderRadius:6, fontSize:10, fontWeight:600, letterSpacing:'.05em', textTransform:'uppercase', color:'var(--text)' }}>{t}</Link>
                   ))}
                 </div>
