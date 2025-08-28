@@ -1,7 +1,7 @@
 ---
 title: Private domains. How to get your own Temporary Email (2021)
 date: 2025-08-20T10:00:00.000Z
-coverImage: /11.png
+coverImage: ''
 excerpt: >-
   In this article, we'll introduce Private Domains for Temporary Email and how
   they help you to bypass common issues with registration and test email
@@ -11,7 +11,7 @@ tags:
   - seo
 ---
 
-In this **article**, ***we'll introduce Private*** Domains for ***Temporary Email* **and how they help you to bypass common issues with registration and test email delivery.
+In this **article**, ***we'll introduce Private*** Domains for \*\**Temporary Email* \*\*and how they help you to bypass common issues with registration and test email delivery.
 
 This information will be useful to you if:
 
@@ -25,6 +25,13 @@ int main() {
     return 0;  
 }
 
+```
+
+```mermaid
+sequenceDiagram
+    User->>TaskScheduler: Configure Auto Shutdown
+    TaskScheduler->>WindowsEC2: Executes shutdown.exe
+    WindowsEC2->>AWS: Instance stops gracefully
 ```
 
 * Your temporary email is not accepted at registration.
