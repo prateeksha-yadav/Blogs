@@ -2,23 +2,15 @@ import type { AppProps } from 'next/app'
 import '../styles/globals.css'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { Sun, Moon, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
+import { ThemeProvider } from 'next-themes'
+
+const ThemeToggle = dynamic(() => import('../components/ThemeToggle'), { ssr: false })
 
 function Layout({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
-  // Load saved preference
-  useEffect(() => {
-    const stored = (typeof window !== 'undefined' && localStorage.getItem('theme')) as 'light' | 'dark' | null
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-    const t = stored || (prefersDark ? 'dark' : 'light')
-    setTheme(t)
-  }, [])
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme
-    localStorage.setItem('theme', theme)
-  }, [theme])
-  const toggleTheme = () => setTheme(t => (t === 'light' ? 'dark' : 'light'))
+  // theme is now managed by `next-themes` ThemeProvider and the ThemeToggle component
   const router = useRouter()
 
   const [q, setQ] = useState('')
@@ -76,19 +68,7 @@ function Layout({ children }: { children: React.ReactNode }) {
               <Search size={16} />
             </button>
             <nav className="main-nav">
-              <button
-                type="button"
-                className="icon-toggle"
-                onClick={toggleTheme}
-                aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-                aria-pressed={theme === 'dark'}
-              >
-                {theme === 'light' ? (
-                  <Moon aria-hidden="true" size={28} />
-                ) : (
-                  <Sun aria-hidden="true" size={28} />
-                )}
-              </button>
+              <ThemeToggle />
             </nav>
           </form>
         </div>
@@ -96,8 +76,8 @@ function Layout({ children }: { children: React.ReactNode }) {
       <main className="site-main">{children}</main>
       <footer className="site-footer">
         <div className="container foot-inner">
-          <p>© {new Date().getFullYear()} MyBlog. All rights reserved.</p>
-          <p className="foot-small">Built with Next.js & TinaCMS</p>
+          <p>© {new Date().getFullYear()} QuantTraderTools Blog. All rights reserved.</p>
+          <p className="foot-small"></p>
         </div>
       </footer>
     </>
@@ -106,8 +86,10 @@ function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <Layout>
-      <Component {...pageProps} />
-    </Layout>
+    <ThemeProvider attribute="data-theme" defaultTheme="light">
+      <Layout>
+        <Component {...pageProps} />
+      </Layout>
+    </ThemeProvider>
   )
 }

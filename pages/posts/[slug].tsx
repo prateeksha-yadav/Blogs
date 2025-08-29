@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type React from 'react'
 
 import { useTina } from 'tinacms/dist/react'
 import { client } from '../../tina/__generated__/client'
@@ -312,6 +313,13 @@ export default function PostPage(props: any) {
           {normalizeCover(post.coverImage) && (
             <div className="pc-media"><img src={normalizeCover(post.coverImage)} alt={post.title} loading="eager" /></div>
           )}
+
+          {/* Tag color helper: deterministic H/S from tag text */}
+          {/**/}
+          {/** We'll use this in the JSX below to color tags consistently */}
+          {/**/}
+          {/**/}
+          
           <h1 className="pc-title">{post.title}</h1>
           <div className="pc-meta">
             {post.date && <span>{formatDate(post.date)}</span>}
@@ -319,11 +327,20 @@ export default function PostPage(props: any) {
             <span>{metrics.words} WORDS</span>
             <button type="button" onClick={share} className="share-btn thin">COPY LINK</button>
           </div>
+          {/* Render tags under the image (top area) and color them using inline vars */}
           {post.tags?.filter((t: string) => (t||'').trim().length>0).length > 0 && (
             <div className="pc-tags">
-              {post.tags.filter((t:string)=> (t||'').trim().length>0).map((t: string) => (
-                <Link key={t} href={`/posts/tags/${t}`} className="tag-chip small">{t}</Link>
-              ))}
+              {post.tags.filter((t:string)=> (t||'').trim().length>0).map((t: string) => {
+                // simple deterministic hash -> hue + saturation
+                let h = 0
+                for (let i = 0; i < t.length; i++) { h = (h << 5) - h + t.charCodeAt(i); h |= 0 }
+                const hue = Math.abs(h) % 360
+                const sat = 48 + (Math.abs(h) % 31)
+                const style = { '--tag-h': String(hue), '--tag-s': `${sat}%`, '--h': String(hue), '--s': `${sat}%` } as React.CSSProperties
+                return (
+                  <Link key={t} href={`/posts/tags/${t}`} className="tag-chip small colored" style={style}>{t}</Link>
+                )
+              })}
             </div>
           )}
           <div className="pc-body rich-body">

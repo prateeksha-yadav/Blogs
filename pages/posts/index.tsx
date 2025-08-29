@@ -126,15 +126,9 @@ export default function PostsIndex(props: any) {
                   excerpt: p.excerpt ? p.excerpt + ` · ${p._reading} min read` : `${p._reading} min read`,
                   date: p.date,
                   coverImage: p.coverImage,
+                  tags: p.tags || [],
                 }}
               />
-        {p.tags?.filter((t:string)=> (t||'').trim().length>0).length > 0 && (
-                <div style={{ position:'absolute', top:8, left:8, display:'flex', gap:6, flexWrap:'wrap' }}>
-          {p.tags.filter((t:string)=> (t||'').trim().length>0).slice(0,3).map((t:string)=>(
-                    <Link key={t} href={`/posts/tags/${t}`} style={{ background:'rgba(255,255,255,.8)', padding:'2px 6px', borderRadius:6, fontSize:10, fontWeight:600, letterSpacing:'.05em', textTransform:'uppercase', color:'var(--text)' }}>{t}</Link>
-                  ))}
-                </div>
-              )}
             </div>
           ))}
         {filtered.length === 0 && <p className="dim">No posts match filters.</p>}
